@@ -1,0 +1,147 @@
+.legal-page {
+  min-height: 100vh;
+  background: #101318;
+  color: #d7d9e0;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.legal-header {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 clamp(16px, 4vw, 48px);
+  border-bottom: 1px solid #2a2e37;
+  background: #14171c;
+  color: #e8e9ee;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.legal-header > span > span {
+  color: #9c87ff;
+}
+
+.legal-back {
+  padding: 6px 9px;
+  border: 1px solid #363b46;
+  border-radius: 5px;
+  background: #1b1f26;
+  color: #c1c4cd;
+  font-size: 10px;
+}
+
+.legal-back:hover {
+  border-color: #8171d1;
+  color: #fff;
+}
+
+.legal-content {
+  width: min(100% - 32px, 900px);
+  margin: 0 auto;
+  padding: 36px 0 64px;
+}
+
+.legal-eyebrow {
+  margin: 0 0 7px;
+  color: #9c87f5;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.legal-content > h1 {
+  margin: 0;
+  color: #e5e6ec;
+  font-size: clamp(25px, 4vw, 34px);
+  letter-spacing: -.7px;
+}
+
+.legal-updated {
+  margin: 9px 0 18px;
+  color: #9298a5;
+  font-size: 10px;
+}
+
+.legal-notice {
+  margin-bottom: 20px;
+  padding: 12px 14px;
+  border: 1px solid #54482f;
+  border-radius: 6px;
+  background: #211f1a;
+  color: #d5c293;
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.legal-tabs {
+  display: flex;
+  gap: 7px;
+  margin-bottom: 13px;
+  border-bottom: 1px solid #2a2e37;
+}
+
+.legal-tabs button {
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #9298a5;
+  font-size: 10px;
+}
+
+.legal-tabs button.selected {
+  border-bottom-color: #9b87f5;
+  color: #e3e4ea;
+}
+
+.legal-document {
+  padding: 22px clamp(16px, 3vw, 28px);
+  border: 1px solid #2a2e37;
+  border-radius: 8px;
+  background: #171a20;
+}
+
+.legal-document h2 {
+  margin: 0 0 13px;
+  color: #e5e6ec;
+  font-size: 20px;
+}
+
+.legal-document h3 {
+  margin: 23px 0 7px;
+  color: #dfe0e7;
+  font-size: 12px;
+}
+
+.legal-document p,
+.legal-document li {
+  color: #aeb3be;
+  font-size: 11px;
+  line-height: 1.75;
+}
+
+.legal-document p {
+  margin: 0 0 12px;
+}
+
+.legal-document ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.legal-document strong {
+  color: #dedfe6;
+}
+
+@media (max-width: 600px) {
+  .legal-content {
+    padding-top: 25px;
+  }
+
+  .legal-document {
+    padding: 18px 14px;
+  }
+}

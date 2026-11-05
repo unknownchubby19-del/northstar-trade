@@ -1,0 +1,24 @@
+@keyframes northstar-logo-rotation {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes northstar-logo-hover-rotation {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.rotating-brand-mark {
+  animation: northstar-logo-rotation 900ms ease-in-out;
+}
+
+.rotating-brand-mark:hover {
+  animation: northstar-logo-hover-rotation 650ms ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rotating-brand-mark,
+  .rotating-brand-mark:hover {
+    animation: none;
+  }
+}
