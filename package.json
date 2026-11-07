@@ -1,18 +1,18 @@
 {
-  "name": "@supabase/realtime-js",
+  "name": "@supabase/auth-js",
   "version": "2.118.0",
-  "description": "Listen to realtime updates to your PostgreSQL database",
+  "private": false,
+  "description": "Official SDK for Supabase Auth",
   "keywords": [
-    "realtime",
-    "phoenix",
-    "elixir",
-    "javascript",
-    "typescript",
-    "firebase",
-    "supabase"
+    "auth",
+    "supabase",
+    "auth",
+    "authentication"
   ],
-  "homepage": "https://github.com/supabase/supabase-js/tree/master/packages/core/realtime-js",
+  "homepage": "https://github.com/supabase/supabase-js/tree/master/packages/core/auth-js",
   "bugs": "https://github.com/supabase/supabase-js/issues",
+  "license": "MIT",
+  "author": "Supabase",
   "files": [
     "dist",
     "src",
@@ -25,25 +25,24 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/supabase/supabase-js.git",
-    "directory": "packages/core/realtime-js"
+    "directory": "packages/core/auth-js"
   },
-  "author": "Supabase",
-  "license": "MIT",
   "dependencies": {
-    "@supabase/phoenix": "0.4.5",
     "tslib": "2.8.1"
   },
   "devDependencies": {
-    "@arethetypeswrong/cli": "^0.18.2",
+    "@faker-js/faker": "^9.9.0",
+    "@types/jest": "30.0.0",
     "@types/jsonwebtoken": "^8.5.8",
-    "@vitest/coverage-v8": "^4.1.5",
-    "jsdom": "^26.0.0",
+    "@types/node": "20.19.9",
+    "jest": "30.4.2",
+    "jest-environment-jsdom": "30.4.1",
+    "jest-mock-server": "^0.1.0",
     "jsonwebtoken": "^9.0.0",
-    "mock-socket": "^9.3.1",
+    "prettier": "^3.6.2",
+    "ts-jest": "^29.4.9",
     "typedoc": "^0.27.9",
-    "typescript": "~5.8.3",
-    "vitest": "4.1.6",
-    "web-worker": "1.2.0"
+    "typescript": "~5.8.3"
   },
   "engines": {
     "node": ">=22.0.0"
@@ -52,12 +51,7 @@
     "build": "npm run build:main && npm run build:module",
     "build:main": "tsc -p tsconfig.json",
     "build:module": "tsc -p tsconfig.module.json",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage.enabled true --coverage.reporter=text",
-    "docs": "typedoc --options ../../../typedoc.base.mjs src/index.ts --out docs/v2",
-    "docs:json": "typedoc --options ../../../typedoc.base.mjs --json docs/v2/spec.json --excludeExternals src/index.ts",
-    "check-exports": "attw --pack .",
-    "test:ci": "vitest run --coverage"
+    "docs": "typedoc --options ../../../typedoc.base.mjs src/index.ts --out docs/v2 --excludePrivate --excludeProtected",
+    "docs:json": "typedoc --options ../../../typedoc.base.mjs --json docs/v2/spec.json --excludeExternals --excludePrivate --excludeProtected src/index.ts"
   }
 }

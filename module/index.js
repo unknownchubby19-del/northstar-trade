@@ -1,6 +1,9 @@
-import RealtimeClient from './RealtimeClient';
-import RealtimeChannel, { RealtimePostgresFilterBuilder, postgresChangesFilter, REALTIME_LISTEN_TYPES, REALTIME_POSTGRES_CHANGES_LISTEN_EVENT, REALTIME_SUBSCRIBE_STATES, REALTIME_CHANNEL_STATES, } from './RealtimeChannel';
-import RealtimePresence, { REALTIME_PRESENCE_LISTEN_EVENTS, } from './RealtimePresence';
-import WebSocketFactory from './lib/websocket-factory';
-export { RealtimePresence, RealtimeChannel, RealtimeClient, RealtimePostgresFilterBuilder, postgresChangesFilter, REALTIME_LISTEN_TYPES, REALTIME_POSTGRES_CHANGES_LISTEN_EVENT, REALTIME_PRESENCE_LISTEN_EVENTS, REALTIME_SUBSCRIBE_STATES, REALTIME_CHANNEL_STATES, WebSocketFactory, };
+import GoTrueAdminApi from './GoTrueAdminApi';
+import GoTrueClient from './GoTrueClient';
+import AuthAdminApi from './AuthAdminApi';
+import AuthClient from './AuthClient';
+export { GoTrueAdminApi, GoTrueClient, AuthAdminApi, AuthClient };
+export * from './lib/types';
+export * from './lib/errors';
+export { navigatorLock, NavigatorLockAcquireTimeoutError, internals as lockInternals, processLock, } from './lib/locks';
 //# sourceMappingURL=index.js.map
