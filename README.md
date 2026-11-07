@@ -8,290 +8,440 @@
     </picture>
   </a>
 
-  <h1 align="center">Supabase JS SDK</h1>
+  <h1 align="center">Supabase Realtime JS SDK</h1>
 
-  <h3 align="center">Isomorphic JavaScript SDK for Supabase - combining Auth, Database, Storage, Functions, and Realtime.</h3>
+  <h3 align="center">Send ephemeral messages with <b>Broadcast</b>, track and synchronize state with <b>Presence</b>, and listen to database changes with <b>Postgres Change Data Capture (CDC)</b>.</h3>
 
   <p align="center">
-    <a href="https://supabase.com/docs/guides/getting-started">Guides</a>
+    <a href="https://supabase.com/docs/guides/realtime">Guides</a>
     ·
-    <a href="https://supabase.com/docs/reference/javascript/start">Reference Docs</a>
+    <a href="https://supabase.com/docs/reference/javascript">Reference Docs</a>
     ·
-    <a href="https://supabase.github.io/supabase-js/supabase-js/v2/spec.json">TypeDoc</a>
+    <a href="https://multiplayer.dev">Multiplayer Demo</a>
   </p>
 </p>
 
 <div align="center">
 
 [![Build](https://github.com/supabase/supabase-js/workflows/CI/badge.svg)](https://github.com/supabase/supabase-js/actions?query=branch%3Amaster)
-[![Package](https://img.shields.io/npm/v/@supabase/supabase-js)](https://www.npmjs.com/package/@supabase/supabase-js)
+[![Package](https://img.shields.io/npm/v/@supabase/realtime-js)](https://www.npmjs.com/package/@supabase/realtime-js)
 [![License: MIT](https://img.shields.io/npm/l/@supabase/supabase-js)](#license)
-[![pkg.pr.new](https://pkg.pr.new/badge/supabase/supabase-js)](https://pkg.pr.new/~/supabase/supabase-js)
+[![pkg.pr.new](https://pkg.pr.new/badge/supabase/realtime-js)](https://pkg.pr.new/~/supabase/realtime-js)
 
 </div>
 
-## Usage
+# Overview
 
-First of all, you need to install the library:
+This SDK enables you to use the following Supabase Realtime's features:
 
-```sh
-npm install @supabase/supabase-js
+- **Broadcast**: send ephemeral messages from client to clients with minimal latency. Use cases include sharing cursor positions between users.
+- **Presence**: track and synchronize shared state across clients with the help of CRDTs. Use cases include tracking which users are currently viewing a specific webpage.
+- **Postgres Change Data Capture (CDC)**: listen for changes in your PostgreSQL database and send them to clients.
+
+# Usage
+
+## Installing the Package
+
+```bash
+npm install @supabase/realtime-js
 ```
 
-Then you're able to import the library and establish the connection with the database:
+## Creating a Channel
 
 ```js
-import { createClient } from '@supabase/supabase-js'
+import { RealtimeClient } from '@supabase/realtime-js'
 
-// Create a single supabase client for interacting with your database
-const supabase = createClient('https://xyzcompany.supabase.co', 'your-publishable-key')
-```
-
-### UMD
-
-You can use plain `<script>`s to import supabase-js from CDNs, like:
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-```
-
-or even:
-
-```html
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-```
-
-Then you can use it from a global `supabase` variable:
-
-```html
-<script>
-  const { createClient } = supabase
-  const _supabase = createClient('https://xyzcompany.supabase.co', 'your-publishable-key')
-
-  console.log('Supabase Instance: ', _supabase)
-  // ...
-</script>
-```
-
-### ESM
-
-You can use `<script type="module">` to import supabase-js from CDNs, like:
-
-```html
-<script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-  const supabase = createClient('https://xyzcompany.supabase.co', 'your-publishable-key')
-
-  console.log('Supabase Instance: ', supabase)
-  // ...
-</script>
-```
-
-### Deno
-
-You can use supabase-js in the Deno runtime via [JSR](https://jsr.io/@supabase/supabase-js):
-
-```js
-import { createClient } from 'jsr:@supabase/supabase-js@2'
-```
-
-### Custom `fetch` implementation
-
-`supabase-js` uses the runtime's global `fetch` to make HTTP requests, but an alternative `fetch` implementation can be provided as an option. This is useful in environments where the global `fetch` is unavailable or where you want to customize request behavior:
-
-```js
-import { createClient } from '@supabase/supabase-js'
-
-// Provide a custom `fetch` implementation as an option
-const supabase = createClient('https://xyzcompany.supabase.co', 'your-publishable-key', {
-  global: {
-    fetch: (...args) => fetch(...args),
+const client = new RealtimeClient(REALTIME_URL, {
+  params: {
+    apikey: API_KEY,
   },
 })
+
+const channel = client.channel('test-channel', {})
+
+channel.subscribe((status, err) => {
+  if (status === 'SUBSCRIBED') {
+    console.log('Connected!')
+  }
+
+  if (status === 'CHANNEL_ERROR') {
+    console.log(`There was an error subscribing to channel: ${err.message}`)
+  }
+
+  if (status === 'TIMED_OUT') {
+    console.log('Realtime server did not respond in time.')
+  }
+
+  if (status === 'CLOSED') {
+    console.log('Realtime channel was unexpectedly closed.')
+  }
+})
 ```
 
-### Distributed Tracing with OpenTelemetry
+### Notes:
 
-The Supabase JS SDK can attach W3C/OpenTelemetry trace context headers (`traceparent`, `tracestate`, `baggage`) to outgoing requests, enabling end-to-end request tracing from your client application through Supabase services.
+- `REALTIME_URL` is `'ws://localhost:4000/socket'` when developing locally and `'wss://<project_ref>.supabase.co/realtime/v1'` when connecting to your Supabase project.
+- `API_KEY` is a JWT whose claims must contain `exp` and `role` (existing database role).
+- Channel name can be any `string`.
+- Setting `private` to `true` means that the client will use RLS to determine if the user can connect or not to a given channel.
 
-Trace propagation is **opt-in** and disabled by default. When enabled, headers are only attached to requests targeting Supabase domains (`*.supabase.co`, `*.supabase.in`, `localhost`).
+## Broadcast
 
-#### Enable trace propagation
-
-Opting in takes two steps: install `@opentelemetry/api`, and load the tracing runtime by importing the `@supabase/supabase-js/tracing` subpath once at your application entry point. The main bundle contains no OpenTelemetry code — the subpath import is what wires it up.
+Your client can send and receive messages based on the `event`.
 
 ```js
-import '@supabase/supabase-js/tracing'
-import { createClient } from '@supabase/supabase-js'
-import { trace } from '@opentelemetry/api'
+// Setup...
 
-const supabase = createClient('https://xyzcompany.supabase.co', 'public-anon-key', {
-  tracePropagation: true,
-})
+const channel = client.channel('broadcast-test', { broadcast: { ack: false, self: false } })
 
-const tracer = trace.getTracer('my-app')
-await tracer.startActiveSpan('fetch-users', async (span) => {
-  // This request now includes the active trace context.
-  const { data, error } = await supabase.from('users').select('*')
-  span.end()
+channel.on('broadcast', { event: 'some-event' }, (payload) => console.log(payload))
+
+channel.subscribe(async (status) => {
+  if (status === 'SUBSCRIBED') {
+    // Send message to other clients listening to 'broadcast-test' channel
+    await channel.send({
+      type: 'broadcast',
+      event: 'some-event',
+      payload: { hello: 'world' },
+    })
+  }
 })
 ```
 
-The subpath imports `@opentelemetry/api` directly, so module resolution fails loudly if it is not installed. If `tracePropagation` is enabled without the subpath import, the SDK logs a one-time warning and sends requests without trace headers; if no active context exists at request time, it silently no-ops.
+### Notes:
 
-Trace propagation is not available via the CDN/UMD build (`https://cdn.jsdelivr.net/.../supabase.js`) — there is no way to load the tracing runtime there.
+- Setting `ack` to `true` means that the `channel.send` promise will resolve once server replies with acknowledgment that it received the broadcast message request.
+- Setting `self` to `true` means that the client will receive the broadcast message it sent out.
 
-#### Advanced configuration
+### Broadcast Replay
+
+Broadcast Replay enables **private** channels to access messages that were sent earlier. Only messages published via [Broadcast From the Database](https://supabase.com/docs/guides/realtime/broadcast#trigger-broadcast-messages-from-your-database) are available for replay.
+
+You can configure replay with the following options:
+
+- **`since`** (Required): The epoch timestamp in milliseconds, specifying the earliest point from which messages should be retrieved.
+- **`limit`** (Optional): The number of messages to return. This must be a positive integer, with a maximum value of 25.
+
+Example:
 
 ```typescript
-interface TracePropagationOptions {
-  // Enable trace propagation (default: false).
-  enabled?: boolean
+const twelveHours = 12 * 60 * 60 * 1000
+const twelveHoursAgo = Date.now() - twelveHours
 
-  // Respect upstream sampling decisions (default: true).
-  // When true, non-sampled requests carry only `traceparent` (flag preserved,
-  // so nothing is recorded downstream) — Supabase logs still get a trace_id,
-  // while `tracestate` and `baggage` are withheld.
-  respectSamplingDecision?: boolean
-}
+const config = { private: true, broadcast: { replay: { since: twelveHoursAgo, limit: 10 } } }
+
+supabase
+  .channel('main:room', { config })
+  .on('broadcast', { event: 'my_event' }, (payload) => {
+    if (payload?.meta?.replayed) {
+      console.log('This message was sent earlier:', payload)
+    } else {
+      console.log('This is a new message', payload)
+    }
+    // ...
+  })
+  .subscribe()
 ```
+
+## Presence
+
+Your client can track and sync state that's stored in the channel.
 
 ```js
-// Always propagate the full trace context, even for non-sampled traces.
-const supabase = createClient('https://xyzcompany.supabase.co', 'public-anon-key', {
-  tracePropagation: { enabled: true, respectSamplingDecision: false },
-})
-```
+// Setup...
 
-## Support Policy
-
-This section outlines the scope of support for various runtime environments in Supabase JavaScript client.
-
-### Node.js
-
-We only support Node.js versions that are in **Active LTS** or **Maintenance** status as defined by the [official Node.js release schedule](https://nodejs.org/en/about/previous-releases#release-schedule). This means we support versions that are currently receiving long-term support and critical bug fixes.
-
-When a Node.js version reaches end-of-life and is no longer in Active LTS or Maintenance status, Supabase will drop it in a **minor release**, and **this won't be considered a breaking change**.
-
-> ⚠️ **Node.js 18 Deprecation Notice**
->
-> Node.js 18 reached end-of-life on April 30, 2025. As announced in [our deprecation notice](https://github.com/orgs/supabase/discussions/37217), support for Node.js 18 was dropped in version `2.79.0`.
->
-> If you must use Node.js 18, please use version `2.78.0`, which is the last version that supported Node.js 18.
-
-> ⚠️ **Node.js 20 Deprecation Notice**
->
-> Node.js 20 reached end-of-life on April 30, 2026. As announced in [our deprecation notice](https://github.com/orgs/supabase/discussions/45715), support for Node.js 20 was dropped in version `2.110.0`.
->
-> If you must use Node.js 20, please use version `2.109.0`, which is the last version that supported Node.js 20.
-
-### Deno
-
-We support Deno versions that are currently receiving active development and security updates. We follow the [official Deno release schedule](https://docs.deno.com/runtime/fundamentals/stability_and_releases/) and only support versions from the `stable` and `lts` release channels.
-
-When a Deno version reaches end-of-life and is no longer receiving security updates, Supabase will drop it in a **minor release**, and **this won't be considered a breaking change**.
-
-### Browsers
-
-All modern browsers are supported. We support browsers that provide native `fetch` API. For Realtime features, browsers must also support native `WebSocket` API.
-
-### Bun
-
-We support Bun runtime environments. Bun provides native fetch support and is compatible with Node.js APIs. Since Bun does not follow a structured release schedule like Node.js or Deno, we support current stable versions of Bun and may drop support for older versions in minor releases without considering it a breaking change.
-
-### React Native
-
-We support React Native environments with fetch polyfills provided by the framework. Since React Native does not follow a structured release schedule, we support current stable versions and may drop support for older versions in minor releases without considering it a breaking change.
-
-### Cloudflare Workers
-
-We support Cloudflare Workers runtime environments. Cloudflare Workers provides native fetch support. Since Cloudflare Workers does not follow a structured release schedule, we support current stable versions and may drop support for older versions in minor releases without considering it a breaking change.
-
-### Important Notes
-
-- **Experimental features**: Features marked as experimental may be removed or changed without notice
-
-## Known Build Warnings
-
-### `UNUSED_EXTERNAL_IMPORT` in Vite / Rollup / Nuxt
-
-When bundling your app, you may see warnings like:
-
-```
-"PostgrestError" is imported from external module "@supabase/postgrest-js" but never used in "...supabase-js/dist/index.mjs".
-"FunctionRegion", "FunctionsError", "FunctionsFetchError", "FunctionsHttpError" and "FunctionsRelayError" are imported from external module "@supabase/functions-js" but never used in "...".
-```
-
-**This is a false positive — your bundle is fine.** Here is why it happens:
-
-`@supabase/supabase-js` re-exports `PostgrestError`, `FunctionsError`, and related symbols so you can import them directly from `@supabase/supabase-js`. However, our build tool merges all imports from the same package into a single import statement in the built output:
-
-```js
-// dist/index.mjs (simplified)
-import { PostgrestClient, PostgrestError } from '@supabase/postgrest-js'
-//       ^ used internally    ^ re-exported for you
-```
-
-Your bundler checks which names from that import are used _in the code body_, and flags `PostgrestError` as unused because it only appears in an `export` statement — not called or assigned. The export itself is the usage, but downstream bundlers don't track this correctly. This is a known Rollup/Vite limitation with re-exported external imports.
-
-**Nothing is broken.** Tree-shaking and bundle size are unaffected.
-
-To suppress the warning:
-
-**Vite / Rollup (`vite.config.js` or `rollup.config.js`):**
-
-```js
-export default {
-  build: {
-    rollupOptions: {
-      onwarn(warning, warn) {
-        if (warning.code === 'UNUSED_EXTERNAL_IMPORT' && warning.exporter?.includes('@supabase/'))
-          return
-        warn(warning)
-      },
-    },
-  },
-}
-```
-
-**Nuxt (`nuxt.config.ts`):**
-
-```ts
-export default defineNuxtConfig({
-  vite: {
-    build: {
-      rollupOptions: {
-        onwarn(warning, warn) {
-          if (warning.code === 'UNUSED_EXTERNAL_IMPORT' && warning.exporter?.includes('@supabase/'))
-            return
-          warn(warning)
-        },
-      },
+const channel = client.channel('presence-test', {
+  config: {
+    presence: {
+      key: '',
     },
   },
 })
+
+channel.on('presence', { event: 'sync' }, () => {
+  console.log('Online users: ', channel.presenceState())
+})
+
+channel.on('presence', { event: 'join' }, ({ newPresences }) => {
+  console.log('New users have joined: ', newPresences)
+})
+
+channel.on('presence', { event: 'leave' }, ({ leftPresences }) => {
+  console.log('Users have left: ', leftPresences)
+})
+
+channel.subscribe(async (status) => {
+  if (status === 'SUBSCRIBED') {
+    const status = await channel.track({ user_id: 1 })
+    console.log(status)
+  }
+})
 ```
 
-## Contributing
+> `config.presence.enabled` (set automatically if you add an `.on('presence', ...)` listener)
+> controls whether _this_ client receives presence state and updates from other clients —
+> without it, `presenceState()` stays empty for you. It does not affect whether other clients
+> see you: calling `track()` always makes you visible to subscribers that do have presence
+> enabled. On RLS-protected channels, receiving presence updates additionally requires the
+> `presence.read` policy to authorize this client.
+
+## Postgres CDC
+
+Receive database changes on the client.
+
+```js
+// Setup...
+
+const channel = client.channel('db-changes')
+
+channel.on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
+  console.log('All changes in public schema: ', payload)
+})
+
+channel.on(
+  'postgres_changes',
+  { event: 'INSERT', schema: 'public', table: 'messages' },
+  (payload) => {
+    console.log('All inserts in messages table: ', payload)
+  }
+)
+
+channel.on(
+  'postgres_changes',
+  { event: 'UPDATE', schema: 'public', table: 'users', filter: 'username=eq.Realtime' },
+  (payload) => {
+    console.log('All updates on users table when username is Realtime: ', payload)
+  }
+)
+
+channel.subscribe(async (status) => {
+  if (status === 'SUBSCRIBED') {
+    console.log('Ready to receive database changes!')
+  }
+})
+```
+
+### Filters
+
+The `filter` option accepts **either** a raw string **or** a
+`postgresChangesFilter()` builder — both produce the exact same wire format, so
+you can mix and match and existing string filters keep working unchanged:
+
+```js
+// Raw string — always supported, fully backward compatible
+{ event: 'UPDATE', schema: 'public', table: 'users', filter: 'id=eq.1' }
+
+// Builder — type-checked, ergonomic; the SDK serializes it for you
+{ event: 'UPDATE', schema: 'public', table: 'users', filter: postgresChangesFilter().eq('id', 1) }
+```
+
+A filter is a `column=operator.value` expression evaluated server-side. The
+following operators are supported:
+
+| Operator              | String form                  | Builder                                | Meaning                           |
+| --------------------- | ---------------------------- | -------------------------------------- | --------------------------------- |
+| `eq`                  | `id=eq.1`                    | `.eq('id', 1)`                         | equal                             |
+| `neq`                 | `id=neq.1`                   | `.neq('id', 1)`                        | not equal                         |
+| `lt` `lte` `gt` `gte` | `age=gte.18`                 | `.gte('age', 18)`                      | comparison                        |
+| `in`                  | `status=in.(active,pending)` | `.in('status', ['active', 'pending'])` | in list                           |
+| `like` `ilike`        | `title=like.%foo%`           | `.like('title', '%foo%')`              | pattern match (case in/sensitive) |
+| `is`                  | `deleted_at=is.null`         | `.is('deleted_at', null)`              | `IS null/true/false/unknown`      |
+| `match` `imatch`      | `title=match.^foo`           | `.match('title', '^foo')`              | POSIX regex match (`~` / `~*`)    |
+| `isdistinct`          | `value=isdistinct.1`         | `.isDistinct('value', 1)`              | NULL-safe inequality              |
+
+**Negation** — prefix any operator with `not.` (string) or use
+`.not(column, operator, value)` (builder):
+
+```js
+// String
+{ event: '*', schema: 'public', table: 'posts', filter: 'status=not.in.(draft,archived)' }
+
+// Builder
+{
+  event: '*',
+  schema: 'public',
+  table: 'posts',
+  filter: postgresChangesFilter().not('status', 'in', ['draft', 'archived']),
+}
+```
+
+**AND composition** — multiple conditions are combined with commas and applied
+as an `AND`. With the builder you just chain calls:
+
+```js
+// String
+{ event: 'UPDATE', schema: 'public', table: 'orders', filter: 'amount=gt.100,status=in.(open,pending)' }
+
+// Builder — equivalent, chained
+{
+  event: 'UPDATE',
+  schema: 'public',
+  table: 'orders',
+  filter: postgresChangesFilter().gt('amount', 100).in('status', ['open', 'pending']),
+}
+```
+
+#### Building filters with `postgresChangesFilter()`
+
+The builder (modeled on the `postgrest-js` filter methods) is the recommended,
+type-checked way to compose filters — but it is entirely optional; raw strings
+remain fully supported.
+
+```js
+import { postgresChangesFilter } from '@supabase/realtime-js'
+
+channel.on(
+  'postgres_changes',
+  {
+    event: 'UPDATE',
+    schema: 'public',
+    table: 'orders',
+    // → 'amount=gt.100,status=not.in.(draft,archived)'
+    filter: postgresChangesFilter().gt('amount', 100).not('status', 'in', ['draft', 'archived']),
+  },
+  (payload) => console.log(payload)
+)
+```
+
+The builder exposes `eq`, `neq`, `gt`, `gte`, `lt`, `lte`, `in`, `like`,
+`ilike`, `match`, `imatch`, `is`, `isDistinct` and `not`. Call `.build()` if you
+need the raw string yourself (e.g. to log it or store it).
+
+**Values are sent verbatim** — the server has no quoting/escaping, so spaces and
+quotes are preserved as-is. The server separates conditions by commas outside
+parentheses, so a literal comma in a scalar value can't be expressed (commas
+inside `in.(…)` are fine); the builder throws on such values rather than
+silently producing a broken filter.
+
+> **Note for PostgREST users:** Realtime evaluates filters server-side over a
+> single table's WAL — there is no resource embedding (`!inner`, embedded
+> filters) and no `or()` grouping. Use `%` (not `*`) for `like`/`ilike`
+> wildcards, since filters travel in the WebSocket payload rather than a URL.
+
+### Selecting columns
+
+Use `select` to receive only a subset of columns instead of the full row. This
+reduces payload size (helpful for large `bytea`/`jsonb` columns). The selected
+columns must be selectable by the subscribing role:
+
+```js
+channel.on(
+  'postgres_changes',
+  { event: '*', schema: 'public', table: 'users', select: ['id', 'first_name'] },
+  (payload) => {
+    // payload.new only contains { id, first_name }
+    console.log(payload)
+  }
+)
+```
+
+## Get All Channels
+
+You can see all the channels that your client has instantiatied.
+
+```js
+// Setup...
+
+client.getChannels()
+```
+
+## Cleanup
+
+It is highly recommended that you clean up your channels after you're done with them.
+
+- Remove a single channel
+
+```js
+// Setup...
+
+const channel = client.channel('some-channel-to-remove')
+
+channel.unsubscribe()
+client.removeChannel(channel)
+```
+
+- Remove all channels and close the connection
+
+```js
+// Setup...
+
+client.removeAllChannels()
+client.disconnect()
+```
+
+## Development
+
+This package is part of the [Supabase JavaScript monorepo](https://github.com/supabase/supabase-js). To work on this package:
+
+### Building
+
+```bash
+# Complete build (from monorepo root)
+pnpm nx build realtime-js
+
+# Build with watch mode for development
+pnpm nx build realtime-js --watch
+
+# Individual build targets
+pnpm nx build:main realtime-js    # CommonJS build (dist/main/)
+pnpm nx build:module realtime-js  # ES Modules build (dist/module/)
+
+# Other useful commands
+pnpm nx clean realtime-js         # Clean build artifacts
+pnpm nx lint realtime-js          # Run ESLint
+pnpm nx typecheck realtime-js     # TypeScript type checking
+```
+
+#### Build Outputs
+
+- **CommonJS (`dist/main/`)** - For Node.js environments
+- **ES Modules (`dist/module/`)** - For modern bundlers (Webpack, Vite, Rollup)
+- **TypeScript definitions (`dist/module/index.d.ts`)** - Type definitions for TypeScript projects
+
+Note: Unlike some other packages, realtime-js doesn't include a UMD build since it's primarily used in Node.js or bundled applications.
+
+#### Validating Package Exports
+
+```bash
+# Check if package exports are correctly configured
+pnpm nx check-exports realtime-js
+```
+
+This command uses ["Are the types wrong?"](https://github.com/arethetypeswrong/arethetypeswrong.github.io) to verify that the package exports work correctly in different environments. Run this before publishing to ensure your package can be imported correctly by all consumers.
+
+### Testing
+
+**No Docker or Supabase instance required!** The realtime-js tests use mocked WebSocket connections, so they're completely self-contained.
+
+```bash
+# Run unit tests (from monorepo root)
+pnpm nx test realtime-js
+
+# Run tests with coverage report
+pnpm nx test:coverage realtime-js
+
+# Run tests in watch mode during development
+pnpm nx test:watch realtime-js
+```
+
+#### Test Scripts Explained
+
+- **test** - Runs all unit tests once using Vitest
+- **test:coverage** - Runs tests and generates coverage report with terminal output
+- **test:watch** - Runs tests in interactive watch mode for development
+
+The tests mock WebSocket connections using `mock-socket`, so you can run them anytime without any external dependencies.
+
+### Contributing
 
 We welcome contributions! Please see our [Contributing Guide](../../../CONTRIBUTING.md) for details on how to get started.
 
 For major changes or if you're unsure about something, please open an issue first to discuss your proposed changes.
 
-### Building
+## Credits
 
-```bash
-# From the monorepo root
-pnpm nx build supabase-js
+This repo draws heavily from [phoenix-js](https://github.com/phoenixframework/phoenix/tree/master/assets/js/phoenix).
 
-# Or with watch mode for development
-pnpm nx build supabase-js --watch
-```
+## License
 
-### Testing
-
-There's a complete guide on how to set up your environment for running locally the `supabase-js` integration tests. Please refer to [TESTING.md](./TESTING.md).
-
-## Badges
-
-[![Coverage Status](https://coveralls.io/repos/github/supabase/supabase-js/badge.svg?branch=master)](https://coveralls.io/github/supabase/supabase-js?branch=master)
+MIT.

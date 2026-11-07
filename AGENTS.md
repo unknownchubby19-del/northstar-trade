@@ -1,6 +1,6 @@
-# Agent instructions for `@supabase/supabase-js`
+# Agent instructions for `@supabase/realtime-js`
 
-Main isomorphic Supabase client for JavaScript. Aggregates `@supabase/auth-js`, `@supabase/postgrest-js`, `@supabase/realtime-js`, `@supabase/storage-js`, and `@supabase/functions-js` into one client.
+Listen to realtime updates from a Supabase PostgreSQL database. Handles channels, presence, broadcast, and Postgres CDC subscriptions.
 
 When helping a user work with this package:
 
